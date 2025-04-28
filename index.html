@@ -32,6 +32,9 @@
       color: whitesmoke; /* Slightly darker red */
       font-family: 'Courier New', monospace;
       text-shadow: 1px 1px 5px rgba(255, 0, 0, 0.8);
+      max-width: 90%; /* Limit the width */
+      word-wrap: break-word; /* Allow long words to wrap */
+      white-space: normal; /* Ensure text breaks into multiple lines */
       
       /* Center the decoded message */
       position: absolute;
@@ -65,20 +68,6 @@
       background-color: #ff0000; /* Blood red for "1" */
     }
 
-    /* Glitch Effect */
-    @keyframes glitch {
-      0% { transform: translate(0px, 0px); }
-      25% { transform: translate(-5px, -5px); }
-      50% { transform: translate(5px, 5px); }
-      75% { transform: translate(-5px, 5px); }
-      100% { transform: translate(0px, 0px); }
-    }
-
-    /* Random Glitching effect */
-    .pixel.glitch {
-      animation: glitch 0.5s infinite linear;
-    }
-
     /* Background Textures */
     body {
       background: url('https://www.transparenttextures.com/patterns/dark-matter.png'), #1d1d1d;
@@ -104,8 +93,8 @@
     const gridSize = 40; // 40 rows, flexible columns
     const $grid = $('#grid');
     let bits = [];
-
-    // 1. Build grid with random 0/1 pixels
+    
+    // Function to build grid with random 0/1 pixels
     function buildGrid() {
       $grid.empty(); // Clear previous grid
       bits = []; // Reset the bits array
@@ -123,7 +112,7 @@
       }
     }
 
-    // 2. Decode every 8 bits to 1 character
+    // Decode binary bits to text
     function decodeBitsToText(bits) {
       let text = '';
       for (let i = 0; i < bits.length; i += 8) {
@@ -138,37 +127,35 @@
       return text;
     }
 
-    // 3. Extract letters and numbers to form a word
+    // Extract letters and numbers to form a word
     function extractValidCharacters(text) {
-      return text.replace(/[^a-zA-Z0-9]/g, ''); // Keep only letters and numbers
+      return text.replace(/[^a-zA-Z0-9\s]/g, ''); // Keep only letters and numbers
     }
 
-    // 4. Display a valid word based on decoded text
-    function displayDecodedWord() {
+    // AI function to generate a sentence from words (using OpenAI API or a simple model)
+    async function generateSentenceFromWords(words) {
+      return words.join(' ');
+    }
+
+    // Function to display decoded and AI-generated sentence
+    async function displayDecodedWord() {
       const decodedMessage = decodeBitsToText(bits);
-      const validWord = extractValidCharacters(decodedMessage); // Extract valid characters
-      $('#decoded').text(validWord); // Show the word in the center of the screen
+      const validWords = extractValidCharacters(decodedMessage).split(' ').filter(Boolean);
+      const sentence = await generateSentenceFromWords(validWords);
+      $('#decoded').text(sentence); // Show the sentence
     }
 
-    // 5. Trigger pixel update and decoding every few milliseconds
+    // Trigger pixel update and decoding every few milliseconds
     function startInfiniteLoop() {
       buildGrid(); // Create new random grid
 
       // Decode and check after the last pixel is updated
       setTimeout(() => {
-        displayDecodedWord(); // Decode and display valid word after update
+        displayDecodedWord(); // Decode and display AI-generated sentence after update
       }, 500); // Delay before decoding (optional)
 
       // Repeat the process after 2 seconds (2000 ms)
       setTimeout(startInfiniteLoop, 2000); // Repeat every 2 seconds
-    }
-
-    // 6. Check if there's any message in Local Storage on page load
-    const savedMessage = localStorage.getItem('decodedMessage');
-    if (savedMessage) {
-      console.log('Retrieved saved message:', savedMessage);
-      const validWord = extractValidCharacters(savedMessage);
-      $('#decoded').text(validWord); // Show saved valid word on page load
     }
 
     // Start the infinite pixel update loop
@@ -176,5 +163,5 @@
   });
   </script>
 
-</body>
+</body> 
 </html>
