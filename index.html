@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dead Talking</title>
+  <style>
+    /* General Body Style */
+    body {
+      font-family: 'Courier New', monospace;
+      background-color: #1d1d1d; /* Dark background */
+      color: #d9d9d9; /* Light gray text */
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    /* Title */
+    h1 {
+      color: #ff0000; /* Blood red */
+      font-family: 'Creepster', cursive; /* Horror font */
+      font-size: 60px;
+      text-transform: uppercase;
+      text-shadow: 3px 3px 5px rgba(255, 0, 0, 0.7), 0 0 25px rgba(255, 0, 0, 0.5), 0 0 50px rgba(255, 0, 0, 0.3);
+      margin-top: 50px;
+    }
+
+    /* Decoded message */
+    #decoded {
+      font-size: 20px;
+      color: whitesmoke; /* Slightly darker red */
+      font-family: 'Courier New', monospace;
+      text-shadow: 1px 1px 5px rgba(255, 0, 0, 0.8);
+      
+      /* Center the decoded message */
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    /* Grid Container */
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(10px, 1fr)); /* Adjust column count dynamically */
+      grid-template-rows: repeat(40, 10px); /* Fixed 40 rows */
+      gap: 1px;
+      margin-top: 50px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+
+    /* Pixel Style */
+    .pixel {
+      width: 10px;
+      height: 10px;
+      background-color: #2d2d2d; /* Dark gray */
+      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+      transition: all 0.1s ease-in-out;
+    }
+
+    .pixel-1 {
+      background-color: #ff0000; /* Blood red for "1" */
+    }
+
+    /* Glitch Effect */
+    @keyframes glitch {
+      0% { transform: translate(0px, 0px); }
+      25% { transform: translate(-5px, -5px); }
+      50% { transform: translate(5px, 5px); }
+      75% { transform: translate(-5px, 5px); }
+      100% { transform: translate(0px, 0px); }
+    }
+
+    /* Random Glitching effect */
+    .pixel.glitch {
+      animation: glitch 0.5s infinite linear;
+    }
+
+    /* Background Textures */
+    body {
+      background: url('https://www.transparenttextures.com/patterns/dark-matter.png'), #1d1d1d;
+    }
+  </style>
+
+  <!-- Google Fonts for Horror Theme -->
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+
+</head>
+<body>
+
+  <h1>Dead Talking</h1>
+  <div id="grid"></div>
+  <h2><span id="decoded"></span></h2>
+
+  <!-- jQuery CDN -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <script>
+  $(document).ready(function() {
+    const gridSize = 40; // 40 rows, flexible columns
+    const $grid = $('#grid');
+    let bits = [];
+
+    // 1. Build grid with random 0/1 pixels
+    function buildGrid() {
+      $grid.empty(); // Clear previous grid
+      bits = []; // Reset the bits array
+
+      const totalPixels = $(window).width() / 10; // Number of pixels per row based on screen width
+      const numRows = 40; // Fixed number of rows
+
+      for (let i = 0; i < totalPixels * numRows; i++) {
+        const bit = Math.random() < 0.5 ? 0 : 1;
+        const $pixel = $('<div>') 
+          .addClass('pixel')
+          .addClass(bit === 1 ? 'pixel-1' : ''); // Random glitch effect
+        $grid.append($pixel);
+        bits.push(bit);
+      }
+    }
+
+    // 2. Decode every 8 bits to 1 character
+    function decodeBitsToText(bits) {
+      let text = '';
+      for (let i = 0; i < bits.length; i += 8) {
+        const byteBits = bits.slice(i, i + 8);
+        if (byteBits.length < 8) continue; // ignore incomplete bytes
+        const byteString = byteBits.join('');
+        const asciiCode = parseInt(byteString, 2);
+        if (asciiCode >= 32 && asciiCode <= 126) { // Only printable ASCII characters
+          text += String.fromCharCode(asciiCode);
+        }
+      }
+      return text;
+    }
+
+    // 3. Check if decoded message is readable (simple check)
+    function isReadableWord(text) {
+      return /^[A-Za-z0-9\s]+$/.test(text.trim()) && text.trim().length > 0;
+    }
+
+    // 4. Save readable message to Local Storage
+    function saveToLocalStorage(text) {
+      localStorage.setItem('decodedMessage', text);
+    }
+
+    // 5. Show decoded message and save to local storage if readable
+    function displayDecodedMessage() {
+      const decodedMessage = decodeBitsToText(bits);
+      $('#decoded').text(decodedMessage);
+
+      if (isReadableWord(decodedMessage)) {
+        saveToLocalStorage(decodedMessage); // Save if readable
+        console.log('Decoded message saved to local storage!');
+      }
+    }
+
+    // 6. Trigger pixel update and decoding every few milliseconds
+    function startInfiniteLoop() {
+      buildGrid(); // Create new random grid
+
+      // Decode and check after the last pixel is updated
+      setTimeout(() => {
+        displayDecodedMessage(); // Decode and check message after update
+      }, 500); // Delay before decoding (optional)
+
+      // Repeat the process after 2 seconds (2000 ms)
+      setTimeout(startInfiniteLoop, 2000); // Repeat every 2 seconds
+    }
+
+    // 7. Check if there's any message in Local Storage on page load
+    const savedMessage = localStorage.getItem('decodedMessage');
+    if (savedMessage) {
+      console.log('Retrieved saved message:', savedMessage);
+      $('#decoded').text(savedMessage); // Show saved message on page load
+    }
+
+    // Start the infinite pixel update loop
+    startInfiniteLoop();
+  });
+  </script>
+
+</body> 
+</html>
