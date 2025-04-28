@@ -28,7 +28,7 @@
 
     /* Decoded message */
     #decoded {
-      font-size: 20px;
+      font-size: 30px;
       color: whitesmoke; /* Slightly darker red */
       font-family: 'Courier New', monospace;
       text-shadow: 1px 1px 5px rgba(255, 0, 0, 0.8);
@@ -92,6 +92,7 @@
 <body>
 
   <h1>Dead Talking</h1>
+  <sup>By: Askal 3000</sup>
   <div id="grid"></div>
   <h2><span id="decoded"></span></h2>
 
@@ -137,45 +138,37 @@
       return text;
     }
 
-    // 3. Check if decoded message is readable (simple check)
-    function isReadableWord(text) {
-      return /^[A-Za-z0-9\s]+$/.test(text.trim()) && text.trim().length > 0;
+    // 3. Extract letters and numbers to form a word
+    function extractValidCharacters(text) {
+      return text.replace(/[^a-zA-Z0-9]/g, ''); // Keep only letters and numbers
     }
 
-    // 4. Save readable message to Local Storage
-    function saveToLocalStorage(text) {
-      localStorage.setItem('decodedMessage', text);
-    }
-
-    // 5. Show decoded message and save to local storage if readable
-    function displayDecodedMessage() {
+    // 4. Display a valid word based on decoded text
+    function displayDecodedWord() {
       const decodedMessage = decodeBitsToText(bits);
-      $('#decoded').text(decodedMessage);
-
-      if (isReadableWord(decodedMessage)) {
-        saveToLocalStorage(decodedMessage); // Save if readable
-        console.log('Decoded message saved to local storage!');
-      }
+      const validWord = extractValidCharacters(decodedMessage); // Extract valid characters
+      $('#decoded').text(validWord); // Show the word in the center of the screen
     }
 
-    // 6. Trigger pixel update and decoding every few milliseconds
+    // 5. Trigger pixel update and decoding every few milliseconds
     function startInfiniteLoop() {
       buildGrid(); // Create new random grid
 
       // Decode and check after the last pixel is updated
       setTimeout(() => {
-        displayDecodedMessage(); // Decode and check message after update
+        displayDecodedWord(); // Decode and display valid word after update
       }, 500); // Delay before decoding (optional)
 
       // Repeat the process after 2 seconds (2000 ms)
       setTimeout(startInfiniteLoop, 2000); // Repeat every 2 seconds
     }
 
-    // 7. Check if there's any message in Local Storage on page load
+    // 6. Check if there's any message in Local Storage on page load
     const savedMessage = localStorage.getItem('decodedMessage');
     if (savedMessage) {
       console.log('Retrieved saved message:', savedMessage);
-      $('#decoded').text(savedMessage); // Show saved message on page load
+      const validWord = extractValidCharacters(savedMessage);
+      $('#decoded').text(validWord); // Show saved valid word on page load
     }
 
     // Start the infinite pixel update loop
@@ -183,5 +176,5 @@
   });
   </script>
 
-</body> 
+</body>
 </html>
